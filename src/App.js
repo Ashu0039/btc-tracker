@@ -14,10 +14,59 @@ const LineChart = ({ values }) => {
   )
 }
 
+class SearchTransactions extends Component {
+  state = {
+    searchValue: null,
+    closestValues: []
+  }
+
+  searchTextChanged = (e) => {
+    const searchText = e.target.value;
+    this.setState({ searchValue: parseFloat(searchText) }, () => this.findClosestThree())
+  }
+
+  findClosestThree() {
+    const { transactions } = this.props;
+    const { searchValue } = this.state;
+    const computeDifference = transactions.map((tx) => {
+      const { value } = tx;
+      return  {
+        diff: Math.abs(value - searchValue),
+        tx
+      }
+    })
+
+    const sortedDifference = computeDifference.sort((A, B) => B.diff - A.diff);
+    const closestThree = sortedDifference.slice(0 , 3)
+    console.log('closest 3 --> ', { closestThree, sortedDifference })
+    const values = closestThree.map(c => c.tx)
+    this.setState({ closestValues: values })
+  }
+
+  render() {
+    const { searchText, closestValues } = this.state;
+    return (
+      <div className="tab second-tab">
+        <input type="number" value={searchText} onChange={(e) => this.searchTextChanged(e)} />
+        <div>
+          <div>Closest Results:</div>
+          {
+            closestValues.map(c => <div key={c.txIndex}>
+              <b>BTC Value:</b><span>{ c.BTCValue }</span>
+            </div>)
+          }
+        </div>
+        
+      </div>
+    )
+  }
+}
+
 class App extends Component {
   state = {
     connectionStatus: 'Disconnected',
     transactions: [],
+    latestTransactions: [],
     transactionLimit: 10
   }
   componentDidMount() {
@@ -67,7 +116,7 @@ class App extends Component {
   }
 
   parseTransaction(transaction) {
-    const { time, value } = transaction;
+    const { time, value, tx_index } = transaction;
     const BTCValue = value / 100000000;
     const date = new Date(time * 1000);
     let hours, minutes, seconds;
@@ -89,7 +138,8 @@ class App extends Component {
     const tx = {
       ...transaction,
       readableTime: timeValue,
-      BTCValue
+      BTCValue,
+      txIndex: tx_index
     };
     return tx;
   }
@@ -99,18 +149,21 @@ class App extends Component {
     // Ignore tx with BTC less than 1
     if (BTCValue < 1) return;
 
-    const { transactions, transactionLimit } = this.state;
+    const { latestTransactions, transactions, transactionLimit } = this.state;
     let newTransactions = [];
-    if (transactions.length < transactionLimit) {
+    if (latestTransactions.length < transactionLimit) {
       // have some space
-      newTransactions = [tx, ...transactions]
+      newTransactions = [tx, ...latestTransactions]
     } else {
       // overflow, remove the oldest transaction
-      const removingOldestTransaction = [...transactions.slice(0, transactionLimit - 1)];
+      const removingOldestTransaction = [...latestTransactions.slice(0, transactionLimit - 1)];
       newTransactions = [tx, ...removingOldestTransaction];
     }
 
-    this.setState({ transactions: newTransactions })
+    this.setState({
+      latestTransactions: newTransactions,
+      transactions: [tx, ...transactions]
+    })
   }
 
   parseDataForChart(data) {
@@ -123,15 +176,16 @@ class App extends Component {
   }
 
   render() {
-    const { connectionStatus, transactions } = this.state;
-    const dataForChart = this.parseDataForChart(transactions);
+    const { connectionStatus, transactions, latestTransactions } = this.state;
+    // const dataForChart = this.parseDataForChart(transactions);
 
     return (
       <div className="App">
         <div>Socket connection: { connectionStatus }</div>
         <div className="transactions">
-          <span>Number of transactions: { transactions.length }</span>
-          <LineChart values={dataForChart} />
+          <span>Number of transactions: { latestTransactions.length }</span>
+          {/* <LineChart values={dataForChart} /> */}
+          <SearchTransactions transactions={transactions} />
         </div>
       </div>
     );
