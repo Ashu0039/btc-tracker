@@ -1,33 +1,27 @@
 .App {
   text-align: center;
+  padding: 20px;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
+.tabs {
+  height: 400px;
+  width: 100%;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.tabs .tab-options {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  border: 1px solid;
+  justify-content: space-around;
+}
+
+.tab-options .tab {
+  background: lightgray;
+  flex: 1;
+  cursor: pointer;
   color: white;
+  font-size: 24px;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.tab-options .tab.active {
+  background: crimson;
 }

@@ -2,6 +2,12 @@ import React, { Component } from 'react';
 import { Line } from 'react-chartjs-2';
 import './App.css';
 
+const LatestTransactions = () => {
+  return (
+    <div>Will show latest transactions</div>
+  )
+}
+
 const LineChart = ({ values }) => {
   console.log('data values --> ', values)
   const dataProp = {
@@ -67,7 +73,8 @@ class App extends Component {
     connectionStatus: 'Disconnected',
     transactions: [],
     latestTransactions: [],
-    transactionLimit: 10
+    transactionLimit: 10,
+    selectedTab: 0
   }
   componentDidMount() {
     this.setState({ connectionStatus: 'Connecting..' })
@@ -175,8 +182,12 @@ class App extends Component {
     })
   }
 
+  setActiveTab = (activeTab) => {
+    this.setState({ selectedTab: activeTab })
+  }
+
   render() {
-    const { connectionStatus, transactions, latestTransactions } = this.state;
+    const { connectionStatus, transactions, latestTransactions, selectedTab } = this.state;
     // const dataForChart = this.parseDataForChart(transactions);
 
     return (
@@ -185,7 +196,24 @@ class App extends Component {
         <div className="transactions">
           <span>Number of transactions: { latestTransactions.length }</span>
           {/* <LineChart values={dataForChart} /> */}
-          <SearchTransactions transactions={transactions} />
+          <div className="tabs">
+            <div className="tab-options">
+              <div className={`tab ${ selectedTab === 0 ? 'active' : '' }`} onClick={() => this.setActiveTab(0)}>
+                Latest Transactions
+              </div>
+              <div className={`tab ${ selectedTab === 1 ? 'active' : '' }`}  onClick={() => this.setActiveTab(1)}>
+                Search Transactions
+              </div>
+            </div>
+            <div className="tab-content">
+              {
+                selectedTab === 0 && <LatestTransactions />
+              }
+              {
+                selectedTab === 1 && <SearchTransactions transactions={transactions} />
+              }
+            </div>
+          </div>
         </div>
       </div>
     );
