@@ -1,5 +1,18 @@
 import React, { Component } from 'react';
+import { Line } from 'react-chartjs-2';
 import './App.css';
+
+const LineChart = ({ values }) => {
+  console.log('data values --> ', values)
+  const dataProp = {
+    labels: values.map(d => d.label),
+    datasets: values.map(d => ({ backgroundColor: 'crimson', data: d.data }))
+  }
+  console.log('datasets ==> ', { dataProp })
+  return (
+    <Line data={dataProp} width={100} height={100} />
+  )
+}
 
 class App extends Component {
   state = {
@@ -26,7 +39,7 @@ class App extends Component {
         // connected and got ack
         webSocket.send(JSON.stringify({"op":"unconfirmed_sub"}))
       } else if (op === 'utx') {
-        console.log('Got new transaction', { transaction: message })
+        // console.log('Got new transaction', { transaction: message })
         const { x } = message;
         const { time, out } = x;
         if (out.length !== 0) {
@@ -100,13 +113,25 @@ class App extends Component {
     this.setState({ transactions: newTransactions })
   }
 
+  parseDataForChart(data) {
+    return data.map((d) => {
+      return {
+        label: 'BTC Value',
+        data: d.BTCValue
+      }
+    })
+  }
+
   render() {
     const { connectionStatus, transactions } = this.state;
+    const dataForChart = this.parseDataForChart(transactions);
+
     return (
       <div className="App">
         <div>Socket connection: { connectionStatus }</div>
         <div className="transactions">
           <span>Number of transactions: { transactions.length }</span>
+          <LineChart values={dataForChart} />
         </div>
       </div>
     );
